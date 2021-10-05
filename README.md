@@ -19,3 +19,9 @@
 # Run `pre-commit` locally.
 
 `pre-commit run --all-files`
+
+# Steps to run the Assignment Two
+
+1. Make sure you are in the directory of "Homework" . If not, please cd to Homework folder
+2. Visit your "Baseball" database from ArimaDB
+3. Once you are at "baseball" database, type `source Assignment 2.sql`.

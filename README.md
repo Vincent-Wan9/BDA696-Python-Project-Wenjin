@@ -24,4 +24,4 @@
 
 1. Make sure you are in the directory of "Homework" . If not, please cd to Homework folder
 2. Visit your "Baseball" database from ArimaDB
-3. Once you are at "baseball" database, type `source Baseball.sql`.
+3. Once you are at "baseball" database, type `source Assignment 2.sql`.

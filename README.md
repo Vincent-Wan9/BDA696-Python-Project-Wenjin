@@ -20,8 +20,11 @@
 
 `pre-commit run --all-files`
 
-# Steps to run the Assignment Two
+# Steps for Assignment 3
 
-1. Make sure you are in the directory of "Homework" . If not, please cd to Homework folder
-2. Visit your "Baseball" database from ArimaDB
-3. Once you are at "baseball" database, type `source Assignment 2.sql`.
+1. Add "pyspark" and "pyspark-stubs" library in "requirements.in". And then update and install requirements.
+2. Before running the code, make sure you have JDBC connector installed and saved in .venv/lib/python3.8/site-packages/pyspark/jars
+   - JDBC connector can be downloaded from https://dev.mysql.com/downloads/connector/j/5.1.html
+   - On the webpage, select "Platform Independent" as your operating system and then download the first package.
+   - Once downloaded, copy "mysql-connector-java-8.0.26.jar" into .venv/lib/python3.8/site-packages/pyspark/jars
+3. After setting up JDBC, type `python3 Assignment3.py` to run the script.

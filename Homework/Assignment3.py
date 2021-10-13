@@ -2,8 +2,7 @@ import sys
 
 from pyspark import StorageLevel
 from pyspark.sql import SparkSession
-from pyspark.sql import functions as func
-from pyspark.sql.window import Window
+from Transformer_HW3 import BattingAverageTransform
 
 
 def main():
@@ -56,13 +55,12 @@ def main():
     )
 
     # Calculate rolling average for last 100 days using transformer
-    window_spec = (
-        Window.partitionBy("batter").orderBy("date_offset").rangeBetween(-100, 0)
+    batting_avg_transform = BattingAverageTransform(
+        inputCols=["batter", "date_offset", "Hit", "atBat"],
+        outputCol="100_days_Batting_Average",
     )
-    results = results.withColumn(
-        "rolling_100_batting_avg",
-        func.sum("Hit").over(window_spec) / func.sum("atBat").over(window_spec),
-    )
+
+    results = batting_avg_transform.transform(results)
 
     results.show()
 

@@ -4,3 +4,5 @@ plotly
 sklearn
 pyspark
 pyspark-stubs
+statsmodels
+jinja2

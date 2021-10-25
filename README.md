@@ -20,11 +20,13 @@
 
 `pre-commit run --all-files`
 
-# Steps for Assignment 3
+# Steps for Assignment 4
 
-1. Add "pyspark" and "pyspark-stubs" library in "requirements.in". And then update and install requirements.
-2. Before running the code, make sure you have JDBC connector installed and saved in .venv/lib/python3.8/site-packages/pyspark/jars
-   - JDBC connector can be downloaded from https://dev.mysql.com/downloads/connector/j/5.1.html
-   - On the webpage, select "Platform Independent" as your operating system and then download the first package.
-   - Once downloaded, copy "mysql-connector-java-8.0.26.jar" into .venv/lib/python3.8/site-packages/pyspark/jars
-3. After setting up JDBC, type `python3 Assignment3.py` to run the script.
+1. Add "statsmodels" in "requirements.in". And then update and install requirements.
+2. This python code assumes the response is continuous and the loaded dataset is clean, including
+   - removing unwanted column,
+   - drop na value
+   - correct data type,
+   - no multi-categorical response variable
+3. plots are saved in .../Homework/Data
+4. for testing, when running the code, enter `/Users/Vincentwang/PycharmProjects/BDA696-Python-Project-Wenjin/Homework/Data/Telco-Customer-Churn.csv` as your dataset location. And then type `tenure` as response

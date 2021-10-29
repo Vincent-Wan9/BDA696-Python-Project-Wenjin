@@ -20,13 +20,11 @@
 
 `pre-commit run --all-files`
 
-# Steps for Assignment 4
+# Notes for Midterm
 
-1. Add "statsmodels" in "requirements.in". And then update and install requirements.
-2. This python code assumes the response is continuous and the loaded dataset is clean, including
+1. The python code assumes the loaded dataset is clean, including
    - removing unwanted column,
    - drop na value
    - correct data type,
    - no multi-categorical response variable
-3. plots are saved in .../Homework/Data
-4. for testing, when running the code, enter `/Users/Vincentwang/PycharmProjects/BDA696-Python-Project-Wenjin/Homework/Data/Telco-Customer-Churn.csv` as your dataset location. And then type `tenure` as response
+2. If you choose to use your own dataset, please make it to csv file before run the code

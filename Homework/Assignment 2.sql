@@ -41,7 +41,7 @@ CREATE TEMPORARY TABLE temp_game
  GROUP BY game_id
 );
 
--- Create Final table for calculating rolling average
+-- Create final temporary table for calculating rolling average
 DROP TABLE IF EXISTS temp_table;
 CREATE TEMPORARY TABLE temp_table
 (SELECT TG.*, BC.batter, BC.Hit, BC.atBat
@@ -57,9 +57,9 @@ CREATE INDEX temp_game_idx ON temp_table (game_id);
 CREATE INDEX temp_batter_idx ON temp_table (batter);
 CREATE INDEX temp_offset_idx ON temp_table (date_offset);
 
--- Rolling Batting Average For largest game ID
-DROP TABLE IF EXISTS rolling_average_largestGameID;
-CREATE TABLE rolling_average_largestGameID ENGINE=MEMORY AS
+-- Rolling Batting Average
+DROP TABLE IF EXISTS 100_days_rolling_average;
+CREATE TABLE 100_days_rolling_average ENGINE=MEMORY AS
 (SELECT batter AS Player, local_date, game_id,
         SUM(Hit) OVER (ORDER BY date_offset ASC RANGE 100 PRECEDING) /
         SUM(atBat) OVER (ORDER BY date_offset ASC RANGE 100 PRECEDING) AS "100 Days Rolling Batting Average"
@@ -71,7 +71,7 @@ ORDER BY batter, local_date, game_id
 
 -- Show the Rolling Batting Average Table
 SELECT *
-FROM rolling_average_largestGameID
+FROM 100_days_rolling_average
 LIMIT 20
 ;
 

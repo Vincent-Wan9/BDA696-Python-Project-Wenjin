@@ -20,11 +20,10 @@
 
 `pre-commit run --all-files`
 
-# Notes for Midterm
+# Steps for HW5
 
-1. The python code assumes the loaded dataset is clean, including
-   - removing unwanted column,
-   - drop na value
-   - correct data type,
-   - no multi-categorical response variable
-2. If you choose to use your own dataset, please make it to csv file before run the code
+1. update and install requirement (mariadb & sqlalchemy)
+2. run "Assignment5.sql" to get the data (using "source Homework/Assignment5.sql")
+   1. Note: go to "baseball" database on Mariadb before running the sql code
+   2. It takes time to generate the data (for me, I've to wait 10 mins)
+3. run "Assignment5.py"

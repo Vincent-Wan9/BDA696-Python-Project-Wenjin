@@ -237,12 +237,14 @@ def rf_variable_ranking(df, response_name, cat_name, cont_name):
                 column3.append(importance)
     else:  # categorical response
         rf = RandomForestClassifier(random_state=42)
+        predictor = df.columns.tolist()
+        predictor.remove(response_name)
         rf.fit(
-            df_transformed.loc[:, df.columns != response_name],
+            df_transformed.loc[:, predictor],
             df_transformed[response_name],
         )
         for name, importance in zip(
-            df_transformed.loc[:, df.columns != response_name], rf.feature_importances_
+            df_transformed.loc[:, predictor], rf.feature_importances_
         ):
             if name != response_name:
                 column1.append(response_name)

@@ -6,3 +6,5 @@ pyspark
 pyspark-stubs
 statsmodels
 jinja2
+mariadb
+sqlalchemy

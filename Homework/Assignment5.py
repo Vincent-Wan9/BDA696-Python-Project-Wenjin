@@ -10,19 +10,7 @@ from Assignment4 import (
     group_all_data,
     rf_variable_ranking,
 )
-from midterm import (
-    calculate_cat_cat_corr,
-    calculate_cat_cat_diff_mean,
-    calculate_cat_cont_corr,
-    calculate_cat_cont_diff_mean,
-    calculate_cont_cont_corr,
-    calculate_cont_cont_diff_mean,
-    cat_cat_corr_matricies,
-    cat_cont_corr_matricies,
-    cont_cont_corr_matricies,
-    generate_brute_force_table,
-    generate_corr_table,
-)
+from midterm import finalized_html_file
 from sklearn import preprocessing
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
@@ -59,10 +47,6 @@ def transform_predictor(df, predictor_name):
 def main():
     if not os.path.isdir("plots"):
         os.mkdir("plots")
-    if not os.path.isdir("correlation-tables"):
-        os.mkdir("correlation-tables")
-    if not os.path.isdir("correlation-matrices"):
-        os.mkdir("correlation-matrices")
     if not os.path.isdir("brute-force-plots"):
         os.mkdir("brute-force-plots")
 
@@ -117,62 +101,8 @@ def main():
         url,
     )
 
-    # Generate HTML cont / cont correlation table
-    first_column1, second_column1, third_column1 = calculate_cont_cont_corr(
-        df, cont_name
-    )
-    generate_corr_table(first_column1, second_column1, third_column1, "cont", "cont")
-
-    # Generate HTML cat / cont correlation table
-    first_column2, second_column2, third_column2 = calculate_cat_cont_corr(
-        df, cat_name, cont_name
-    )
-    generate_corr_table(first_column2, second_column2, third_column2, "cat", "cont")
-
-    # Generate HTML cat / cat correlation table
-    first_column3, second_column3, third_column3 = calculate_cat_cat_corr(df, cat_name)
-    generate_corr_table(first_column3, second_column3, third_column3, "cat", "cat")
-
-    # Generate HTML correlation matricies
-    cont_cont_corr_matricies(df, cont_name)
-    cat_cont_corr_matricies(first_column2, second_column2, third_column2)
-    cat_cat_corr_matricies(df, cat_name)
-
-    # Generate HTML cont / cont brute-force table linked with plots
-    (
-        column11,
-        column21,
-        column31,
-        column41,
-        cont_cont_plot_path,
-    ) = calculate_cont_cont_diff_mean(df_copy, cont_name, response_name)
-    generate_brute_force_table(
-        column11, column21, column31, column41, cont_cont_plot_path, "cont", "cont"
-    )
-
-    # Generate HTML cat / cont brute-force table linked with plots
-    (
-        column12,
-        column22,
-        column32,
-        column42,
-        cat_cont_plot_path,
-    ) = calculate_cat_cont_diff_mean(df_copy, predictor_name, response_name)
-    generate_brute_force_table(
-        column12, column22, column32, column42, cat_cont_plot_path, "cat", "cont"
-    )
-
-    # Generate HTML cat / cat brute-force table linked with plots
-    (
-        column13,
-        column23,
-        column33,
-        column43,
-        cat_cat_plot_path,
-    ) = calculate_cat_cat_diff_mean(df_copy, cat_name, response_name)
-    generate_brute_force_table(
-        column13, column23, column33, column43, cat_cat_plot_path, "cat", "cat"
-    )
+    # generate finalized html file
+    finalized_html_file(df, df_copy, cont_name, cat_name, predictor_name, response_name)
 
     # Logistic Regression
     df_copy = transform_predictor(df_copy, predictor_name)

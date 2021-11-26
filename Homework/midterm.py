@@ -7,9 +7,15 @@ from itertools import combinations
 import numpy as np
 import pandas as pd
 from cat_correlation import cat_cont_correlation_ratio, cat_correlation, fill_na
+from Assignment4 import (
+    cont_response_cont_predictor,
+    cont_response_cat_predictor,
+    cat_response_cat_predictor,
+)
 from plotly import figure_factory as ff
 from scipy import stats
 from sklearn import preprocessing
+import webbrowser
 
 
 # determine if response is continuous or boolean
@@ -51,6 +57,7 @@ def calculate_cont_cont_corr(df, cont_name):
     first_column = []
     second_column = []
     third_column = []
+    fourth_column = []
     for i in range(len(cont_name)):
         for k in range(len(cont_name)):
             if k > i:
@@ -59,7 +66,10 @@ def calculate_cont_cont_corr(df, cont_name):
                 third_column.append(
                     round(stats.pearsonr(df[cont_name[i]], df[cont_name[k]])[0], 3)
                 )
-    return first_column, second_column, third_column
+                fourth_column.append(
+                    cont_response_cont_predictor(df, cont_name[i], cont_name[k])
+                )
+    return first_column, second_column, third_column, fourth_column
 
 
 # Calculate correlation ratio for Cont / Cat pairs
@@ -67,6 +77,7 @@ def calculate_cat_cont_corr(df, cat_name, cont_name):
     first_column = []
     second_column = []
     third_column = []
+    fourth_column = []
     for i in range(len(cat_name)):
         for k in range(len(cont_name)):
             first_column.append(cat_name[i])
@@ -74,7 +85,10 @@ def calculate_cat_cont_corr(df, cat_name, cont_name):
             third_column.append(
                 round(cat_cont_correlation_ratio(df[cat_name[i]], df[cont_name[k]]), 3)
             )
-    return first_column, second_column, third_column
+            fourth_column.append(
+                cont_response_cat_predictor(df, cat_name[i], cont_name[k])
+            )
+    return first_column, second_column, third_column, fourth_column
 
 
 # Calculate correlation ratios for Cat / Cat pairs
@@ -82,6 +96,7 @@ def calculate_cat_cat_corr(df, cat_name):
     first_column = []
     second_column = []
     third_column = []
+    fourth_column = []
     for i in range(len(cat_name)):
         for k in range(len(cat_name)):
             if k > i:
@@ -90,31 +105,79 @@ def calculate_cat_cat_corr(df, cat_name):
                 third_column.append(
                     round(cat_correlation(df[cat_name[i]], df[cat_name[k]]), 3)
                 )
-    return first_column, second_column, third_column
+                fourth_column.append(
+                    cat_response_cat_predictor(df, cat_name[i], cat_name[k])
+                )
+    return first_column, second_column, third_column, fourth_column
 
 
 # Generate correlation table
 def generate_corr_table(
-    first_column, second_column, third_column, var_type1, var_type2
+    first_column, second_column, third_column, fourth_column, var_type1, var_type2
 ):
     df_corr = pd.DataFrame(
-        list(zip(first_column, second_column, third_column)),
-        columns=["1st Predictor", "2nd Predictor", "Coefficient Value"],
+        list(zip(first_column, second_column, third_column, fourth_column)),
+        columns=["1st Predictor", "2nd Predictor", "Coefficient Value", "URI"],
     )
     df_corr_sorted = df_corr.sort_values("Coefficient Value", ascending=False)
     corr_table = df_corr_sorted.reset_index(drop=True)
+    corr_table = corr_table.style.format({"URI": make_clickable}, escape="html")
     corr_table_html = corr_table.to_html()
-    html_file = open(f"correlation-tables/{var_type1}_{var_type2}_corr_table.html", "w")
-    html_file.write(corr_table_html)
-    html_file.close()
-    return
+    return corr_table_html
 
 
-# Generate correlation matricies for Cont / Cont pairs
-def cont_cont_corr_matricies(df, cont_name):
-    corr = df[cont_name].corr(method="pearson")
-    corr = corr[corr.columns[::-1]]  # used to align index and column on corr matricies
+# Generate correlation matrices
+def corr_matrices(df, cat_name, cont_name, var_type1, var_type2):
+    if var_type1 == "cont" and var_type2 == "cont":
+        corr = df[cont_name].corr(method="pearson")
+        corr = corr[
+            corr.columns[::-1]
+        ]  # used to align index and column on corr matrices
 
+    if var_type1 == "cat" and var_type2 == "cont":
+        (
+            first_column,
+            second_column,
+            third_column,
+            fourth_column,
+        ) = calculate_cat_cont_corr(df, cat_name, cont_name)
+        df_corr = pd.DataFrame(
+            list(zip(first_column, second_column, third_column)),
+            columns=["1st Predictor", "2nd Predictor", "Coefficient Value"],
+        )
+
+        corr = df_corr.pivot(
+            index="1st Predictor", columns="2nd Predictor", values="Coefficient Value"
+        )
+
+    if var_type1 == "cat" and var_type2 == "cat":
+        first_column = []
+        second_column = []
+        third_column = []
+        for i in range(len(cat_name)):
+            for k in range(len(cat_name)):
+                first_column.append(cat_name[i])
+                second_column.append(cat_name[k])
+                third_column.append(
+                    round(cat_correlation(df[cat_name[i]], df[cat_name[k]]), 3)
+                )
+
+        corr_table = pd.DataFrame(
+            list(zip(first_column, second_column, third_column)),
+            columns=["1st Cat Predictor", "2nd Cat Predictor", "Cramer'V"],
+        )
+
+        corr = corr_table.pivot(
+            index="1st Cat Predictor", columns="2nd Cat Predictor", values="Cramer'V"
+        )
+        corr = corr[
+            corr.columns[::-1]
+        ]  # used to align index and column on corr matrices
+    return corr
+
+
+# Generate correlation matrices plot
+def generate_corr_matrices_plot(corr, var_type1, var_type2):
     fig = ff.create_annotated_heatmap(
         z=corr.values,
         x=corr.columns.values.tolist(),
@@ -127,98 +190,11 @@ def cont_cont_corr_matricies(df, cont_name):
     )
 
     fig.update_layout(
-        title="Correlation Matrices: Continuous Predictor by Continuous Predictor",
-        xaxis_title="Continuous Predictors",
-        yaxis_title="Continuous Predictors",
+        title=f"Correlation Matrices: {var_type1} Predictor by {var_type2} Predictor"
     )
     fig["layout"]["xaxis"]["side"] = "top"
-    fig.write_html(
-        file="correlation-matrices/cont_cont_correlation_matrics.html",
-        include_plotlyjs="cdn",
-    )
-    return
-
-
-# Generate correlation matricies for Cat / Cont pairs
-def cat_cont_corr_matricies(first_column, second_column, third_column):
-    df_corr = pd.DataFrame(
-        list(zip(first_column, second_column, third_column)),
-        columns=["1st Predictor", "2nd Predictor", "Coefficient Value"],
-    )
-
-    corr = df_corr.pivot(
-        index="1st Predictor", columns="2nd Predictor", values="Coefficient Value"
-    )
-
-    fig = ff.create_annotated_heatmap(
-        z=corr.values,
-        x=corr.columns.values.tolist(),
-        y=corr.index.values.tolist(),
-        zmin=-1,
-        zmax=1,
-        colorscale="RdBu",
-        showscale=True,
-        hoverongaps=True,
-    )
-
-    fig.update_layout(
-        title="Correlation Matrices: Categorical Predictor by Continuous Predictor",
-        xaxis_title="Continuous Predictors",
-        yaxis_title="Categorical Predictors",
-    )
-    fig["layout"]["xaxis"]["side"] = "top"
-    fig.write_html(
-        file="correlation-matrices/cat_cont_correlation_matrics.html",
-        include_plotlyjs="cdn",
-    )
-    return
-
-
-# Generate correlation matricies for Cat / Cat pairs
-def cat_cat_corr_matricies(df, cat_name):
-    first_column = []
-    second_column = []
-    third_column = []
-    for i in range(len(cat_name)):
-        for k in range(len(cat_name)):
-            first_column.append(cat_name[i])
-            second_column.append(cat_name[k])
-            third_column.append(
-                round(cat_correlation(df[cat_name[i]], df[cat_name[k]]), 3)
-            )
-
-    corr_table = pd.DataFrame(
-        list(zip(first_column, second_column, third_column)),
-        columns=["1st Cat Predictor", "2nd Cat Predictor", "Cramer'V"],
-    )
-
-    corr = corr_table.pivot(
-        index="1st Cat Predictor", columns="2nd Cat Predictor", values="Cramer'V"
-    )
-    corr = corr[corr.columns[::-1]]  # used to align index and column on corr matricies
-
-    fig = ff.create_annotated_heatmap(
-        z=corr.values,
-        x=corr.columns.values.tolist(),
-        y=corr.index.values.tolist(),
-        zmin=-1,
-        zmax=1,
-        colorscale="RdBu",
-        showscale=True,
-        hoverongaps=True,
-    )
-
-    fig.update_layout(
-        title="Correlation Matrices: Categorical Predictor by Categorical Predictor",
-        xaxis_title="Categorical Predictors",
-        yaxis_title="Categorical Predictors",
-    )
-    fig["layout"]["xaxis"]["side"] = "top"
-    fig.write_html(
-        file="correlation-matrices/cat_cat_correlation_matrics.html",
-        include_plotlyjs="cdn",
-    )
-    return
+    corr_matrices_html = fig.to_html()
+    return corr_matrices_html
 
 
 # Make plot to see relationship of combined predictors
@@ -495,7 +471,7 @@ def generate_brute_force_table(
             "2nd Predictor",
             "Unweighted Difference with Mean",
             "Weighted Difference with Mean",
-            "URL",
+            "URI",
         ],
     )
     df_brute_force_sorted = df_brute_force.sort_values(
@@ -503,23 +479,143 @@ def generate_brute_force_table(
     )
     brute_force_table = df_brute_force_sorted.reset_index(drop=True)
     brute_force_table = brute_force_table.style.format(
-        {"URL": make_clickable}, escape="html"
+        {"URI": make_clickable}, escape="html"
     )
-    final_table = brute_force_table.to_html()
-    html_file = open(f"{var_type1}_{var_type2}_brute_force_table.html", "w")
-    html_file.write(final_table)
-    html_file.close()
+    brute_force_table_html = brute_force_table.to_html()
+    return brute_force_table_html
+
+
+# Consolidate all outputs into a single HTML file
+def finalized_html_file(
+    df, df_copy, cont_name, cat_name, predictor_name, response_name
+):
+    file = open("midterm_analysis.html", "w")
+    header = """<!DOCTYPE html>
+        <html>
+        <head>
+            <link rel="stylesheet" type="text/css" href="style.css">
+            <title>Midterm</title>
+        </head>
+        <body>
+        <h1>Predictor Analysis</h1>
+        <h2>Continuous / Continuous Predictor Pairs</h2>
+        """
+    file.write(header)
+
+    # Continuous/Continuous Predictor Pairs
+    file.write("<h3>Correlation Table</h3>")
+    (
+        first_column1,
+        second_column1,
+        third_column1,
+        fourth_column1,
+    ) = calculate_cont_cont_corr(df, cont_name)
+    file.write(
+        generate_corr_table(
+            first_column1, second_column1, third_column1, fourth_column1, "cont", "cont"
+        )
+    )  # add corr table
+
+    file.write("<h3>Correlation Matrices</h3>")
+    corr = corr_matrices(df, cat_name, cont_name, "cont", "cont")
+    file.write(generate_corr_matrices_plot(corr, "cont", "cont"))  # add corr matrices
+
+    file.write("<h3>'Brute Force' Table</h3>")
+    (
+        column11,
+        column21,
+        column31,
+        column41,
+        cont_cont_plot_path,
+    ) = calculate_cont_cont_diff_mean(df_copy, cont_name, response_name)
+    file.write(
+        generate_brute_force_table(
+            column11, column21, column31, column41, cont_cont_plot_path, "cont", "cont"
+        )
+    )  # add brute-force table
+
+    # Categorical/Continuous Predictor Pairs
+    file.write("<h2> Categorical / Continuous Predictor Pairs </h2>")
+    file.write("<h3>Correlation Table</h3>")
+    (
+        first_column2,
+        second_column2,
+        third_column2,
+        fourth_column2,
+    ) = calculate_cat_cont_corr(df, cat_name, cont_name)
+    file.write(
+        generate_corr_table(
+            first_column2, second_column2, third_column2, fourth_column2, "cat", "cont"
+        )
+    )  # add corr table
+
+    file.write("<h3>Correlation Matrices</h3>")
+    corr = corr_matrices(df, cat_name, cont_name, "cat", "cont")
+    file.write(generate_corr_matrices_plot(corr, "cat", "cont"))  # add corr matrices
+
+    file.write("<h3>'Brute Force' Table</h3>")
+    (
+        column12,
+        column22,
+        column32,
+        column42,
+        cat_cont_plot_path,
+    ) = calculate_cat_cont_diff_mean(df_copy, predictor_name, response_name)
+    file.write(
+        generate_brute_force_table(
+            column12, column22, column32, column42, cat_cont_plot_path, "cat", "cont"
+        )
+    )  # add brute-force table
+
+    # Categorical/Categorical Predictor Pairs
+    file.write("<h2> Categorical / Categorical Predictor Pairs </h2>")
+    file.write("<h3>Correlation Table</h3>")
+    (
+        first_column3,
+        second_column3,
+        third_column3,
+        fourth_column3,
+    ) = calculate_cat_cat_corr(df, cat_name)
+    file.write(
+        generate_corr_table(
+            first_column3, second_column3, third_column3, fourth_column3, "cat", "cat"
+        )
+    )  # add corr table
+
+    file.write("<h3>Correlation Matrices</h3>")
+    corr = corr_matrices(df, cat_name, cont_name, "cat", "cat")
+    file.write(generate_corr_matrices_plot(corr, "cat", "cat"))  # add corr matrices
+
+    file.write("<h3>'Brute Force' Table</h3>")
+    (
+        column13,
+        column23,
+        column33,
+        column43,
+        cat_cat_plot_path,
+    ) = calculate_cat_cat_diff_mean(df_copy, cat_name, response_name)
+    file.write(
+        generate_brute_force_table(
+            column13, column23, column33, column43, cat_cat_plot_path, "cat", "cat"
+        )
+    )  # add corr matrices
+
+    footer = """<p>BDA696 Midterm, Fall 2021, by Wenjin Wang</p>
+        </body>
+        </html>
+        """
+    file.write(footer)
+
+    webbrowser.open("assignment5_analysis.html", new=2)
     return
 
 
 def main():
-    # create folders to store correlation tables, correlation matrices, "Brute Force" plots
-    if not os.path.isdir("correlation-tables"):
-        os.mkdir("correlation-tables")
-    if not os.path.isdir("correlation-matrices"):
-        os.mkdir("correlation-matrices")
+    # create folder to store "Brute Force" plots
     if not os.path.isdir("brute-force-plots"):
         os.mkdir("brute-force-plots")
+    if not os.path.isdir("plots"):
+        os.mkdir("plots")
 
     answer = input("Do you have your own dataset? (Please answer Yes or No): ")
     if answer == "Yes":
@@ -548,74 +644,8 @@ def main():
         df, predictor_name
     )
 
-    # Generate HTML cont / cont correlation table
-    first_column1, second_column1, third_column1 = calculate_cont_cont_corr(
-        df, cont_name
-    )
-    generate_corr_table(first_column1, second_column1, third_column1, "cont", "cont")
-
-    # Generate HTML cat / cont correlation table
-    first_column2, second_column2, third_column2 = calculate_cat_cont_corr(
-        df, cat_name, cont_name
-    )
-    generate_corr_table(first_column2, second_column2, third_column2, "cat", "cont")
-
-    # Generate HTML cat / cat correlation table
-    first_column3, second_column3, third_column3 = calculate_cat_cat_corr(df, cat_name)
-    generate_corr_table(first_column3, second_column3, third_column3, "cat", "cat")
-
-    # Generate HTML correlation matricies
-    cont_cont_corr_matricies(df, cont_name)
-    cat_cont_corr_matricies(first_column2, second_column2, third_column2)
-    cat_cat_corr_matricies(df, cat_name)
-
-    # Generate HTML cont / cont brute-force table linked with plots
-    (
-        column11,
-        column21,
-        column31,
-        column41,
-        cont_cont_plot_path,
-    ) = calculate_cont_cont_diff_mean(df, cont_name, response_name)
-    generate_brute_force_table(
-        column11, column21, column31, column41, cont_cont_plot_path, "cont", "cont"
-    )
-
-    # Generate HTML cat / cont brute-force table linked with plots
-    (
-        column12,
-        column22,
-        column32,
-        column42,
-        cat_cont_plot_path,
-    ) = calculate_cat_cont_diff_mean(df, predictor_name, response_name)
-    generate_brute_force_table(
-        column12, column22, column32, column42, cat_cont_plot_path, "cat", "cont"
-    )
-
-    # Generate HTML cat / cat brute-force table linked with plots
-    (
-        column13,
-        column23,
-        column33,
-        column43,
-        cat_cat_plot_path,
-    ) = calculate_cat_cat_diff_mean(df, cat_name, response_name)
-    generate_brute_force_table(
-        column13, column23, column33, column43, cat_cat_plot_path, "cat", "cat"
-    )
-
-    if response_type == "Continuous":
-        print("*** Your response is continuous ***")
-    else:
-        print("*** Your response is boolean ***")
-
-    print(
-        "*** Done! The tables, plots and matrices have been created and saved in this project folder ***"
-    )
-    print(
-        "*** For convenience, you can open this project folder to check those outputs instead of pycharm ***"
-    )
+    # generate finalized html file
+    finalized_html_file(df, cont_name, cat_name, predictor_name, response_name)
 
 
 if __name__ == "__main__":

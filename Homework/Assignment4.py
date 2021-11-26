@@ -41,7 +41,7 @@ def check_predictor_cat_or_cont(df, predictor_name):
 def cont_response_cont_predictor(df, predictor_name, response_name):
     fig = px.scatter(x=df[predictor_name], y=df[response_name], trendline="ols")
     fig.update_layout(
-        title=f"Continuous Response '{response_name}' by Continuous Predictor '{predictor_name}'",
+        title="Continuous by Continuous",
         xaxis_title=f"{predictor_name}",
         yaxis_title=f"{response_name}",
     )
@@ -76,7 +76,7 @@ def cont_response_cat_predictor(df, predictor_name, response_name):
             )
         )
     fig.update_layout(
-        title=f"Continuous Response '{response_name}' by Categorical Predictor '{predictor_name}'",
+        title="Continuous by Categorical",
         xaxis_title=f"Groupings of {predictor_name}",
         yaxis_title=f"{response_name}",
     )
@@ -111,7 +111,7 @@ def cat_response_cont_predictor(df, predictor_name, response_name):
             )
         )
     fig.update_layout(
-        title=f"Continuous Predictor '{predictor_name}' by Categorical Response '{response_name}' ",
+        title="Continuous by Categorical ",
         xaxis_title=f"Groupings of {response_name}",
         yaxis_title=f"{predictor_name}",
     )
@@ -126,7 +126,7 @@ def cat_response_cat_predictor(df, predictor_name, response_name):
 
     fig = go.Figure(data=go.Heatmap(z=conf_matrix, zmin=0, zmax=conf_matrix.max()))
     fig.update_layout(
-        title=f"Categorical Response '{response_name}' by Continuous Predictor '{predictor_name}'",
+        title="Categorical by Categorical",
         xaxis_title=f"{predictor_name}",
         yaxis_title=f"{response_name}",
     )

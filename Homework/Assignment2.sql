@@ -2,7 +2,7 @@
 
 -- Create a Historic Batting Average Table
 DROP    TABLE  IF EXISTS historic_average;
-CREATE  TABLE  historic_average
+CREATE  TEMPORARY TABLE  historic_average
 (SELECT batter AS Player, SUM(Hit)/NULLIF(SUM(atBat), 0) AS "Historic Batting Average"
  FROM   batter_counts
  GROUP  BY batter
@@ -17,7 +17,7 @@ LIMIT  20;
 
 -- Create an Annual Batting Average Table
 DROP    TABLE IF EXISTS annual_average;
-CREATE  TABLE annual_average
+CREATE  TEMPORARY TABLE annual_average
 (SELECT BC.batter AS Player, YEAR(G.local_date) AS YEAR,
         SUM(BC.Hit)/ NULLIF(SUM(BC.atBat),0) AS "Annual Batting Average"
  FROM   batter_counts BC
@@ -59,7 +59,7 @@ CREATE INDEX temp_offset_idx ON temp_table (date_offset);
 
 -- Rolling Batting Average
 DROP TABLE IF EXISTS 100_days_rolling_average;
-CREATE TABLE 100_days_rolling_average ENGINE=MEMORY AS
+CREATE TEMPORARY TABLE 100_days_rolling_average ENGINE=MEMORY AS
 (SELECT batter AS Player, local_date, game_id,
         SUM(Hit) OVER (ORDER BY date_offset ASC RANGE 100 PRECEDING) /
         SUM(atBat) OVER (ORDER BY date_offset ASC RANGE 100 PRECEDING) AS "100 Days Rolling Batting Average"
@@ -74,8 +74,4 @@ SELECT *
 FROM 100_days_rolling_average
 LIMIT 20
 ;
-
-
-
-
 

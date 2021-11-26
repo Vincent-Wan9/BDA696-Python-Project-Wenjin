@@ -20,13 +20,10 @@
 
 `pre-commit run --all-files`
 
-# Steps for Assignment 4
+# Steps for HW5
 
-1. Add "statsmodels" in "requirements.in". And then update and install requirements.
-2. This python code assumes the response is continuous and the loaded dataset is clean, including
-   - removing unwanted column,
-   - drop na value
-   - correct data type,
-   - no multi-categorical response variable
-3. plots are saved in .../Homework/Data
-4. for testing, when running the code, enter `/Users/Vincentwang/PycharmProjects/BDA696-Python-Project-Wenjin/Homework/Data/Telco-Customer-Churn.csv` as your dataset location. And then type `tenure` as response
+1. update and install requirement (mariadb & sqlalchemy)
+2. run "Assignment5.sql" to get the data (using "source Homework/Assignment5.sql")
+   1. Note: go to "baseball" database on Mariadb before running the sql code
+   2. It takes time to generate the data (for me, I've to wait 10 mins)
+3. run "Assignment5.py"

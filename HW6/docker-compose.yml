@@ -1,0 +1,24 @@
+version: "3.3"
+
+services:
+  sql_service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: sql_service
+    depends_on:
+      - maria_db
+    restart: unless-stopped
+  maria_db:
+    image: mariadb
+    restart: always
+    environment:
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root # pragma: allowlist secret
+      MYSQL_DATABASE: baseball
+      MYSQL_ROOT_PASSWORD: root # pragma: allowlist secret
+    volumes:
+      - db_data:/var/lib/mariadb
+
+volumes:
+  db_data:

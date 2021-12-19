@@ -1,0 +1,35 @@
+version: "3.3"
+
+services:
+  final-project-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: final-project-service
+    restart: unless-stopped
+    depends_on:
+      - db
+    stdin_open: true
+    volumes:
+      - ./results:/results
+    networks:
+      - db-network
+  db:
+    image: linuxserver/mariadb:latest
+    container_name: db
+    restart: always
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=root
+    volumes:
+      - ./mariadb-data:/config
+    networks:
+      db-network:
+        aliases:
+          - db
+
+networks:
+  db-network:

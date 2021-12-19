@@ -359,10 +359,12 @@ def generate_table(
         ],
     )
     final_table = table.style.format({"URL": make_clickable}, escape="html")
-    final_table = final_table.to_html()
-    html_file = open("final_table.html", "w")
-    html_file.write(final_table)
-    html_file.close()
+    final_table = final_table.to_html(
+        "final_table.html", render_links=True, escape=False
+    )
+    # html_file = open("final_table.html", "w")
+    # html_file.write(final_table)
+    # html_file.close()
     return
 
 
